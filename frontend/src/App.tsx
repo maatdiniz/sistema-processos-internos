@@ -1,6 +1,7 @@
 // Arquivo: frontend/src/App.tsx
 import { useState } from 'react';
 import { AbaCriacao } from './pages/AbaCriacao';
+import { AbaMinhasDemandas } from './pages/AbaMinhasDemandas';
 import './App.css'; // Garantindo que o nosso CSS limpo seja carregado
 
 export default function App() {
@@ -108,9 +109,8 @@ export default function App() {
             <p style={{ color: cores.textoSecundario, fontSize: '15px' }}>Bem-vindo ao painel de controle estratégico.</p>
           </div>
 
-          <div style={{ display: abaAtiva === 'meus' ? 'block' : 'none', padding: '60px 40px', maxWidth: '1000px', margin: '0 auto' }}>
-            <h2 style={{ fontSize: '28px', fontWeight: '600', marginBottom: '20px' }}>Meus Protocolos</h2>
-            <p style={{ color: cores.textoSecundario, fontSize: '15px' }}>Gerencie aqui suas demandas em andamento.</p>
+          <div style={{ display: abaAtiva === 'meus' ? 'block' : 'none' }}>
+            <AbaMinhasDemandas />
           </div>
         </main>
       </div>
