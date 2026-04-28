@@ -1,61 +1,68 @@
 // Arquivo: frontend/src/App.tsx
 import { useState } from 'react';
+import { Dashboard } from './pages/Dashboard';
 import { AbaCriacao } from './pages/AbaCriacao';
-import { AbaMinhasDemandas } from './pages/AbaMinhasDemandas';
+import { AtribuidasAMim } from './pages/AtribuidasAMim';
+import { Solicitacoes } from './pages/Solicitacoes';
+import { TodasDemandas } from './pages/TodasDemandas';
+import { AdminPanel } from './pages/admin/AdminPanel';
 
-// Importando o Bootstrap 5 direto do pacote npm
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './index.css';
 import './App.css';
 
 export default function App() {
-  const [abaAtiva, setAbaAtiva] = useState('abrir');
+  const [abaAtiva, setAbaAtiva] = useState('visao');
 
-  const menuItems = [
-    { id: 'visao',  icon: 'bi-grid-1x2',    label: 'Dashboard',       titulo: 'Visão Geral' },
-    { id: 'abrir',  icon: 'bi-plus-circle',  label: 'Novo Chamado',    titulo: 'Abertura de Solicitação' },
-    { id: 'meus',   icon: 'bi-stack',        label: 'Meus Protocolos', titulo: 'Gestão de Demandas' },
+  const menuPrincipal = [
+    { id: 'visao',       icon: 'bi-grid-1x2',          label: 'Dashboard',          titulo: 'Visão Geral' },
+    { id: 'abrir',       icon: 'bi-plus-circle',        label: 'Nova Demanda',       titulo: 'Abertura de Demanda' },
+    { id: 'atribuidas',  icon: 'bi-person-check',       label: 'Atribuições',        titulo: 'Atribuições' },
+    { id: 'solicitacoes',icon: 'bi-send',               label: 'Solicitações',       titulo: 'Minhas Solicitações' },
+    { id: 'todas',       icon: 'bi-archive',            label: 'Todas as Demandas',  titulo: 'Todas as Demandas' },
   ];
 
-  const tituloAtual = menuItems.find(item => item.id === abaAtiva)?.titulo || '';
+  const menuSistema = [
+    { id: 'admin', icon: 'bi-gear', label: 'Administração', titulo: 'Painel Administrativo' },
+  ];
+
+  const todosItens = [...menuPrincipal, ...menuSistema];
+  const tituloAtual = todosItens.find(i => i.id === abaAtiva)?.titulo || '';
 
   return (
     <div className="admin-layout">
-
-      {/* ══ SIDEBAR ══ */}
       <aside className="sidebar">
-
-        {/* Branding */}
         <div className="sidebar-brand">
-          <div className="sidebar-brand-icon">
-            <i className="bi bi-boxes"></i>
-          </div>
+          <div className="sidebar-brand-icon"><i className="bi bi-boxes"></i></div>
           <div>
-            <div className="sidebar-brand-text">Service Desk</div>
+            <div className="sidebar-brand-text">CEAD</div>
             <div className="sidebar-brand-sub">Processos Internos</div>
           </div>
         </div>
 
-        {/* Menu label */}
         <div className="sidebar-label">Menu principal</div>
-
-        {/* Navegação */}
         <ul className="sidebar-nav">
-          {menuItems.map(item => (
+          {menuPrincipal.map(item => (
             <li key={item.id}>
-              <button
-                className={`nav-link ${abaAtiva === item.id ? 'active' : ''}`}
-                onClick={() => setAbaAtiva(item.id)}
-              >
-                <i className={`bi ${item.icon}`}></i>
-                {item.label}
+              <button className={`nav-link ${abaAtiva === item.id ? 'active' : ''}`} onClick={() => setAbaAtiva(item.id)}>
+                <i className={`bi ${item.icon}`}></i>{item.label}
               </button>
             </li>
           ))}
         </ul>
 
-        {/* Rodapé com perfil */}
+        <div className="sidebar-label">Sistema</div>
+        <ul className="sidebar-nav" style={{ flex: 'none', marginBottom: 8 }}>
+          {menuSistema.map(item => (
+            <li key={item.id}>
+              <button className={`nav-link ${abaAtiva === item.id ? 'active' : ''}`} onClick={() => setAbaAtiva(item.id)}>
+                <i className={`bi ${item.icon}`}></i>{item.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+
         <div className="sidebar-footer">
           <div className="sidebar-user">
             <div className="sidebar-avatar">MD</div>
@@ -67,46 +74,22 @@ export default function App() {
         </div>
       </aside>
 
-      {/* ══ ÁREA CENTRAL ══ */}
       <div className="content-area">
-
-        {/* Barra superior */}
         <header className="top-navbar">
           <h1>{tituloAtual}</h1>
           <div className="header-actions">
-            <button className="btn-icon" title="Pesquisar">
-              <i className="bi bi-search"></i>
-            </button>
-            <button className="btn-icon" title="Notificações">
-              <i className="bi bi-bell"></i>
-              <span className="notification-dot"></span>
-            </button>
+            <button className="btn-icon" title="Pesquisar"><i className="bi bi-search"></i></button>
+            <button className="btn-icon" title="Notificações"><i className="bi bi-bell"></i><span className="notification-dot"></span></button>
           </div>
         </header>
 
-        {/* Conteúdo das abas */}
         <main className="main-content" key={abaAtiva}>
-
-          {abaAtiva === 'visao' && (
-            <div className="dashboard-empty fade-in">
-              <div className="card border-0">
-                <div className="card-body p-5 text-center">
-                  <div className="dashboard-empty-icon">
-                    <i className="bi bi-bar-chart-line"></i>
-                  </div>
-                  <h4 style={{ fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 8 }}>Métricas da Governança</h4>
-                  <p className="mb-0" style={{ color: 'var(--text-muted)', maxWidth: 400, margin: '0 auto' }}>
-                    Acompanhamento estratégico de SLAs, volume de chamados e performance das equipes aparecerá aqui.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
+          {abaAtiva === 'visao' && <Dashboard />}
           {abaAtiva === 'abrir' && <AbaCriacao />}
-
-          {abaAtiva === 'meus' && <AbaMinhasDemandas />}
-
+          {abaAtiva === 'atribuidas' && <AtribuidasAMim />}
+          {abaAtiva === 'solicitacoes' && <Solicitacoes />}
+          {abaAtiva === 'todas' && <TodasDemandas />}
+          {abaAtiva === 'admin' && <AdminPanel />}
         </main>
       </div>
     </div>
