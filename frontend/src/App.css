@@ -1,19 +1,655 @@
-/* Arquivo: frontend/src/App.css */
+/* =============================================
+   LAYOUT — Service Desk CRM
+   ============================================= */
 
-/* 1. Reset Global para todos os elementos */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-/* 2. Travar a tela principal para não criar barras de rolagem globais */
-html,
-body,
-#root {
-  width: 100%;
+/* ── Layout raiz ── */
+.admin-layout {
+  display: flex;
   height: 100vh;
   overflow: hidden;
-  background-color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ══════════════════════════════════════════════
+   SIDEBAR
+   ══════════════════════════════════════════════ */
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  transition: width var(--transition-normal);
+}
+
+/* Logo / Branding */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 8px;
+}
+
+.sidebar-brand-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--primary), #818CF8);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.sidebar-brand-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.sidebar-brand-sub {
+  font-size: 11px;
+  color: var(--text-on-dark-muted);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* Menu label */
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-on-dark-muted);
+  padding: 16px 20px 8px;
+}
+
+/* Navegação */
+.sidebar-nav {
+  list-style: none;
+  padding: 0 12px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+}
+
+.sidebar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--text-on-dark);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.sidebar-nav .nav-link i {
+  font-size: 17px;
+  width: 20px;
+  text-align: center;
+  opacity: 0.65;
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar-nav .nav-link:hover {
+  background: var(--bg-sidebar-hover);
+  color: #fff;
+}
+
+.sidebar-nav .nav-link:hover i {
+  opacity: 1;
+}
+
+.sidebar-nav .nav-link.active {
+  background: var(--bg-sidebar-active);
+  color: #fff;
+}
+
+.sidebar-nav .nav-link.active i {
+  opacity: 1;
+  color: #A5B4FC;
+}
+
+.sidebar-nav .nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: var(--primary);
+  border-radius: 0 3px 3px 0;
+}
+
+/* Rodapé da sidebar */
+.sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 16px 16px;
+  margin-top: auto;
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.sidebar-user:hover {
+  background: var(--bg-sidebar-hover);
+}
+
+.sidebar-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #6366F1, #A78BFA);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.sidebar-user-info {
+  overflow: hidden;
+}
+
+.sidebar-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-user-role {
+  font-size: 11px;
+  color: var(--text-on-dark-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ══════════════════════════════════════════════
+   ÁREA DE CONTEÚDO
+   ══════════════════════════════════════════════ */
+.content-area {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-body);
+}
+
+/* ── Barra superior ── */
+.top-navbar {
+  height: var(--header-height);
+  min-height: var(--header-height);
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+.top-navbar h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  font-size: 16px;
+}
+
+.btn-icon:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.notification-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  background: var(--danger);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--bg-surface);
+}
+
+/* ── Área rolável (conteúdo das abas) ── */
+.main-content {
+  padding: 28px 32px;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+/* ══════════════════════════════════════════════
+   DASHBOARD — Placeholder cards
+   ══════════════════════════════════════════════ */
+.dashboard-empty {
+  animation: fadeInUp var(--transition-slow) ease-out;
+}
+
+.dashboard-empty .card {
+  border: 1px dashed var(--border-default) !important;
+  background: var(--bg-surface);
+}
+
+.dashboard-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.dashboard-empty-icon i {
+  font-size: 24px;
+  color: var(--primary);
+}
+
+/* ══════════════════════════════════════════════
+   TABELAS — Estilo unificado
+   ══════════════════════════════════════════════ */
+.table-crm {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-crm thead {
+  background: var(--bg-muted);
+}
+
+.table-crm th {
+  padding: 10px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table-crm td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  font-size: 13.5px;
+}
+
+.table-crm tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.table-crm tbody tr:hover {
+  background: var(--primary-subtle);
+}
+
+.table-crm tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Badge de status ── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.status-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.status-badge.status-aberto {
+  background: var(--info-light);
+  color: var(--info);
+}
+
+.status-badge.status-aberto::before {
+  background: var(--info);
+}
+
+.status-badge.status-em-andamento {
+  background: var(--warning-light);
+  color: #D97706;
+}
+
+.status-badge.status-em-andamento::before {
+  background: var(--warning);
+}
+
+.status-badge.status-resolvido {
+  background: var(--success-light);
+  color: #059669;
+}
+
+.status-badge.status-resolvido::before {
+  background: var(--success);
+}
+
+.status-badge.status-fechado {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.status-badge.status-fechado::before {
+  background: var(--text-muted);
+}
+
+/* ── Protocolo link ── */
+.protocol-id {
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.protocol-id:hover {
+  text-decoration: underline;
+}
+
+/* ══════════════════════════════════════════════
+   SEÇÃO DE PÁGINA — Headers internos
+   ══════════════════════════════════════════════ */
+.page-section {
+  animation: fadeInUp var(--transition-slow) ease-out;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.section-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-icon i {
+  font-size: 20px;
+  color: var(--primary);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+/* ── Botão refresh / ações secundárias ── */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-ghost:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+/* ── Empty state ── */
+.empty-state {
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--bg-muted);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-default);
+}
+
+.empty-state-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-full);
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+}
+
+.empty-state-icon i {
+  font-size: 22px;
+  color: var(--primary);
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ── Confirmation card (etapa 3 do wizard) ── */
+.confirmation-card {
+  background: var(--bg-muted);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+
+.confirmation-card h6 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.confirmation-card h6 i {
+  color: var(--primary);
+}
+
+.confirmation-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+
+.confirmation-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 120px;
+}
+
+.confirmation-value {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* ══════════════════════════════════════════════
+   STEPPER — Wizard visual (substituindo progress bar)
+   ══════════════════════════════════════════════ */
+.wizard-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 32px;
+  padding: 0 4px;
+}
+
+.wizard-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  position: relative;
+}
+
+.wizard-step:not(:last-child)::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--border-light);
+  margin: 0 12px;
+  transition: background var(--transition-normal);
+}
+
+.wizard-step.completed:not(:last-child)::after {
+  background: var(--primary);
+}
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  flex-shrink: 0;
+  transition: all var(--transition-normal);
+}
+
+.wizard-step.active .step-circle {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+}
+
+.wizard-step.completed .step-circle {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+.step-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: color var(--transition-fast);
+}
+
+.wizard-step.active .step-label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.wizard-step.completed .step-label {
+  color: var(--primary);
+}
+
+/* ── Loading spinner ── */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-spinner i {
+  animation: spin 1s linear infinite;
+  font-size: 18px;
+  color: var(--primary);
 }

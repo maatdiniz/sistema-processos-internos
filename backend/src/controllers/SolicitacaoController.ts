@@ -1,38 +1,56 @@
+// Arquivo: backend/src/controllers/SolicitacaoController.ts
 import { Request, Response } from 'express';
 import { abrirBanco } from '../database/connection';
+import { z } from 'zod'; // Importando o Zod para validação
+
+// 1. Criamos a "barreira" de validação com Zod
+const solicitacaoSchema = z.object({
+    tipo: z.string().min(3, "O tipo deve ter no mínimo 3 caracteres."),
+    assunto: z.string().min(5, "O assunto deve ter no mínimo 5 caracteres."),
+    texto_descricao: z.string().optional(), // Pode ser vazio
+    departamento_id: z.number().int().positive("ID de departamento inválido.")
+});
 
 export const SolicitacaoController = {
-    // 1. Criar nova demanda
-    async criar(req: Request, res: Response) {
+    async criar(req: Request, res: Response): Promise<any> {
         try {
-            const { tipo, assunto, texto_descricao, departamento_id, usuario_id } = req.body;
-
-            // Validação: garante que os campos cruciais não venham em branco
-            if (!tipo || !assunto || !departamento_id) {
-                return res.status(400).json({ erro: 'Tipo, assunto e departamento são obrigatórios.' });
-            }
+            // 2. O Zod tenta validar o corpo da requisição. Se falhar, cai no catch.
+            const dadosValidados = solicitacaoSchema.parse(req.body);
 
             const db = await abrirBanco();
 
-            // Insere os dados na tabela. O 'status' já entra como 'Aberto' por padrão do SQLite
+            // 3. O SQL seguro usando parâmetros (?) contra injeção de código
             const resultado = await db.run(
-                `INSERT INTO solicitacoes (tipo, assunto, texto_descricao, departamento_id, usuario_id) 
-         VALUES (?, ?, ?, ?, ?)`,
-                [tipo, assunto, texto_descricao, departamento_id, usuario_id || 1]
+                `INSERT INTO solicitacoes (tipo, assunto, texto_descricao, departamento_id, status) 
+         VALUES (?, ?, ?, ?, 'Aberto')`,
+                [
+                    dadosValidados.tipo,
+                    dadosValidados.assunto,
+                    dadosValidados.texto_descricao || '',
+                    dadosValidados.departamento_id
+                ]
             );
 
             return res.status(201).json({
                 mensagem: 'Demanda registrada com sucesso!',
                 id_protocolo: resultado.lastID
             });
+
         } catch (erro) {
-            console.error('Erro ao criar solicitação:', erro);
+            // Se o erro for do Zod (validação), devolvemos as mensagens claras para o Front-end
+            if (erro instanceof z.ZodError) {
+                return res.status(400).json({
+                    erro: 'Dados inválidos.',
+                    detalhes: erro.errors.map(e => e.message)
+                });
+            }
+
+            console.error('Erro interno:', erro);
             return res.status(500).json({ erro: 'Erro interno ao registrar a demanda.' });
         }
     },
 
-    // 2. Listar demandas
-    async listar(req: Request, res: Response) {
+    async listar(req: Request, res: Response): Promise<any> {
         try {
             const db = await abrirBanco();
             const solicitacoes = await db.all('SELECT * FROM solicitacoes');

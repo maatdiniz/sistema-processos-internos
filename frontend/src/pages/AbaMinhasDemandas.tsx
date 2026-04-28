@@ -16,6 +16,7 @@ export function AbaMinhasDemandas() {
 
     // Função que busca os dados no back-end
     const buscarChamados = async () => {
+        setCarregando(true);
         try {
             const resposta = await fetch('http://localhost:3000/solicitacoes');
             if (resposta.ok) {
@@ -36,81 +37,78 @@ export function AbaMinhasDemandas() {
         buscarChamados();
     }, []);
 
-    const thStyle = {
-        padding: '12px 15px',
-        textAlign: 'left' as const,
-        borderBottom: '2px solid #d2d2d7',
-        color: '#86868b',
-        fontWeight: '600',
-        fontSize: '12px',
-        textTransform: 'uppercase' as const,
-        letterSpacing: '0.5px'
-    };
-
-    const tdStyle = {
-        padding: '12px 15px',
-        borderBottom: '1px solid #e5e5ea',
-        color: '#1d1d1f',
-        fontSize: '13px'
+    /** Retorna a classe CSS correta do badge conforme o status */
+    const getStatusClass = (status: string): string => {
+        const s = (status || 'Aberto').toLowerCase().replace(/\s+/g, '-');
+        if (s.includes('andamento')) return 'status-em-andamento';
+        if (s.includes('resolv'))    return 'status-resolvido';
+        if (s.includes('fechad'))    return 'status-fechado';
+        return 'status-aberto';
     };
 
     return (
-        <div style={{ padding: '30px 40px', maxWidth: '1000px', margin: '0 auto' }}>
-            <header style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <h2 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 5px 0' }}>Meus Protocolos</h2>
-                    <p style={{ color: '#86868b', fontSize: '14px', margin: 0 }}>Acompanhe o status das suas solicitações ativas.</p>
-                </div>
-                <button
-                    onClick={buscarChamados}
-                    style={{ padding: '8px 16px', backgroundColor: '#f5f5f7', border: '1px solid #d2d2d7', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', color: '#1d1d1f' }}
-                >
-                    ↻ Atualizar
-                </button>
-            </header>
+        <div className="page-section fade-in">
 
+            {/* Cabeçalho da seção */}
+            <div className="section-header">
+                <div className="section-header-left">
+                    <div className="section-icon">
+                        <i className="bi bi-stack"></i>
+                    </div>
+                    <div>
+                        <h2 className="section-title">Meus Protocolos</h2>
+                        <p className="section-subtitle">Acompanhe o status das suas solicitações ativas</p>
+                    </div>
+                </div>
+                <button className="btn-ghost" onClick={buscarChamados}>
+                    <i className="bi bi-arrow-clockwise"></i>
+                    Atualizar
+                </button>
+            </div>
+
+            {/* Conteúdo */}
             {carregando ? (
-                <p style={{ color: '#86868b' }}>Carregando chamados...</p>
+                <div className="loading-spinner">
+                    <i className="bi bi-arrow-repeat"></i>
+                    Carregando chamados...
+                </div>
             ) : chamados.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#f5f5f7', borderRadius: '8px', border: '1px dashed #d2d2d7' }}>
-                    <p style={{ color: '#86868b', margin: 0 }}>Nenhum chamado encontrado.</p>
+                <div className="empty-state">
+                    <div className="empty-state-icon">
+                        <i className="bi bi-inbox"></i>
+                    </div>
+                    <p>Nenhum chamado encontrado. Crie um novo chamado para começar.</p>
                 </div>
             ) : (
-                <div style={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #d2d2d7', overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead style={{ backgroundColor: '#f9f9fb' }}>
-                            <tr>
-                                <th style={thStyle}>Protocolo</th>
-                                <th style={thStyle}>Assunto</th>
-                                <th style={thStyle}>Classificação</th>
-                                <th style={thStyle}>Setor (ID)</th>
-                                <th style={thStyle}>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {chamados.map((chamado) => (
-                                <tr key={chamado.id} style={{ transition: 'background-color 0.2s' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f5f5f7'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                                    <td style={{ ...tdStyle, fontWeight: '600', color: '#0066cc' }}>#{chamado.id}</td>
-                                    <td style={tdStyle}>{chamado.assunto}</td>
-                                    <td style={tdStyle}>{chamado.tipo}</td>
-                                    <td style={tdStyle}>{chamado.departamento_id}</td>
-                                    <td style={tdStyle}>
-                                        <span style={{
-                                            backgroundColor: chamado.status === 'Aberto' ? '#e5f0ff' : '#e5ffec',
-                                            color: chamado.status === 'Aberto' ? '#0066cc' : '#00875a',
-                                            padding: '4px 8px',
-                                            borderRadius: '12px',
-                                            fontSize: '11px',
-                                            fontWeight: '600',
-                                            textTransform: 'uppercase'
-                                        }}>
-                                            {chamado.status || 'Aberto'}
-                                        </span>
-                                    </td>
+                <div className="card border-0">
+                    <div style={{ overflowX: 'auto' }}>
+                        <table className="table-crm">
+                            <thead>
+                                <tr>
+                                    <th>Protocolo</th>
+                                    <th>Assunto</th>
+                                    <th>Classificação</th>
+                                    <th>Setor</th>
+                                    <th>Status</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {chamados.map((chamado) => (
+                                    <tr key={chamado.id}>
+                                        <td><span className="protocol-id">#{chamado.id}</span></td>
+                                        <td>{chamado.assunto}</td>
+                                        <td>{chamado.tipo}</td>
+                                        <td>{chamado.departamento_id}</td>
+                                        <td>
+                                            <span className={`status-badge ${getStatusClass(chamado.status)}`}>
+                                                {chamado.status || 'Aberto'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </div>

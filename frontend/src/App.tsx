@@ -2,158 +2,112 @@
 import { useState } from 'react';
 import { AbaCriacao } from './pages/AbaCriacao';
 import { AbaMinhasDemandas } from './pages/AbaMinhasDemandas';
-import './App.css'; // Garantindo que o nosso CSS limpo seja carregado
+
+// Importando o Bootstrap 5 direto do pacote npm
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import './index.css';
+import './App.css';
 
 export default function App() {
-  const [moduloAtivo, setModuloAtivo] = useState('chamados');
   const [abaAtiva, setAbaAtiva] = useState('abrir');
-  const [notificacoesAbertas, setNotificacoesAbertas] = useState(false);
 
-  const cores = {
-    lateral: '#1c1c1c',
-    subAbas: '#ffffff',
-    fundo: '#ffffff',
-    texto: '#1d1d1f',
-    textoSecundario: '#86868b',
-    borda: '#d2d2d7',
-    destaque: '#0066cc'
-  };
+  const menuItems = [
+    { id: 'visao',  icon: 'bi-grid-1x2',    label: 'Dashboard',       titulo: 'Visão Geral' },
+    { id: 'abrir',  icon: 'bi-plus-circle',  label: 'Novo Chamado',    titulo: 'Abertura de Solicitação' },
+    { id: 'meus',   icon: 'bi-stack',        label: 'Meus Protocolos', titulo: 'Gestão de Demandas' },
+  ];
 
-  const menuButtonStyle = (ativo: boolean) => ({
-    width: '100%',
-    padding: '12px 15px',
-    textAlign: 'left' as const,
-    backgroundColor: ativo ? '#323232' : 'transparent',
-    color: '#ffffff',
-    border: 'none',
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: ativo ? '600' : '400',
-    borderLeft: ativo ? `4px solid ${cores.destaque}` : '4px solid transparent',
-    transition: '0.2s'
-  });
-
-  const subAbaStyle = (ativa: boolean) => ({
-    padding: '10px 20px',
-    backgroundColor: 'transparent',
-    color: ativa ? cores.destaque : cores.textoSecundario,
-    border: 'none',
-    borderBottom: ativa ? `2px solid ${cores.destaque}` : '2px solid transparent',
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: '500',
-    transition: '0.2s'
-  });
+  const tituloAtual = menuItems.find(item => item.id === abaAtiva)?.titulo || '';
 
   return (
-    <div style={{ display: 'flex', height: '100%', width: '100%' }}>
+    <div className="admin-layout">
 
-      {/* 1. MÓDULOS (ESQUERDA) */}
-      <nav style={{
-        width: '200px',
-        minWidth: '200px', /* Impede que o menu esprema em telas menores */
-        backgroundColor: cores.lateral,
-        color: '#fff',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        <div style={{ padding: '20px', fontSize: '15px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-          SISTEMA CRM
+      {/* ══ SIDEBAR ══ */}
+      <aside className="sidebar">
+
+        {/* Branding */}
+        <div className="sidebar-brand">
+          <div className="sidebar-brand-icon">
+            <i className="bi bi-boxes"></i>
+          </div>
+          <div>
+            <div className="sidebar-brand-text">Service Desk</div>
+            <div className="sidebar-brand-sub">Processos Internos</div>
+          </div>
         </div>
 
-        <div style={{ flex: 1 }}>
-          <button onClick={() => setModuloAtivo('inicio')} style={menuButtonStyle(moduloAtivo === 'inicio')}>
-            Dashboard
-          </button>
-          <button onClick={() => setModuloAtivo('chamados')} style={menuButtonStyle(moduloAtivo === 'chamados')}>
-            Gestão de Chamados
-          </button>
-          <button onClick={() => setModuloAtivo('usuarios')} style={menuButtonStyle(moduloAtivo === 'usuarios')}>
-            Governança / Usuários
-          </button>
+        {/* Menu label */}
+        <div className="sidebar-label">Menu principal</div>
+
+        {/* Navegação */}
+        <ul className="sidebar-nav">
+          {menuItems.map(item => (
+            <li key={item.id}>
+              <button
+                className={`nav-link ${abaAtiva === item.id ? 'active' : ''}`}
+                onClick={() => setAbaAtiva(item.id)}
+              >
+                <i className={`bi ${item.icon}`}></i>
+                {item.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        {/* Rodapé com perfil */}
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <div className="sidebar-avatar">MD</div>
+            <div className="sidebar-user-info">
+              <div className="sidebar-user-name">Matheus Diniz</div>
+              <div className="sidebar-user-role">Administrador</div>
+            </div>
+          </div>
         </div>
-      </nav>
+      </aside>
 
-      {/* 2. ÁREA DE CONTEÚDO (CENTRO) */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: cores.fundo,
-        minWidth: '0' /* Macete de flexbox para permitir que a área interna encolha corretamente sem gerar scroll horizontal */
-      }}>
+      {/* ══ ÁREA CENTRAL ══ */}
+      <div className="content-area">
 
-        {/* SUB-ABAS (TOPO) */}
-        <header style={{
-          minHeight: '45px',
-          backgroundColor: cores.subAbas,
-          borderBottom: `1px solid ${cores.borda}`,
-          display: 'flex',
-          alignItems: 'flex-end',
-          paddingLeft: '20px',
-          overflowX: 'auto' /* Permite rolagem das abas se a tela for muito pequena */
-        }}>
-          <button onClick={() => setAbaAtiva('visao')} style={subAbaStyle(abaAtiva === 'visao')}>Visão Geral</button>
-          <button onClick={() => setAbaAtiva('abrir')} style={subAbaStyle(abaAtiva === 'abrir')}>Abrir Novo</button>
-          <button onClick={() => setAbaAtiva('meus')} style={subAbaStyle(abaAtiva === 'meus')}>Meus Atendimentos</button>
+        {/* Barra superior */}
+        <header className="top-navbar">
+          <h1>{tituloAtual}</h1>
+          <div className="header-actions">
+            <button className="btn-icon" title="Pesquisar">
+              <i className="bi bi-search"></i>
+            </button>
+            <button className="btn-icon" title="Notificações">
+              <i className="bi bi-bell"></i>
+              <span className="notification-dot"></span>
+            </button>
+          </div>
         </header>
 
-        {/* ÁREA DE TRABALHO */}
-        <main style={{ flex: 1, overflowY: 'auto' }}>
-          <div style={{ display: abaAtiva === 'abrir' ? 'block' : 'none' }}>
-            <AbaCriacao />
-          </div>
+        {/* Conteúdo das abas */}
+        <main className="main-content" key={abaAtiva}>
 
-          <div style={{ display: abaAtiva === 'visao' ? 'block' : 'none', padding: '60px 40px', maxWidth: '1000px', margin: '0 auto' }}>
-            <h2 style={{ fontSize: '28px', fontWeight: '600', marginBottom: '20px' }}>Visão Geral</h2>
-            <p style={{ color: cores.textoSecundario, fontSize: '15px' }}>Bem-vindo ao painel de controle estratégico.</p>
-          </div>
+          {abaAtiva === 'visao' && (
+            <div className="dashboard-empty fade-in">
+              <div className="card border-0">
+                <div className="card-body p-5 text-center">
+                  <div className="dashboard-empty-icon">
+                    <i className="bi bi-bar-chart-line"></i>
+                  </div>
+                  <h4 style={{ fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 8 }}>Métricas da Governança</h4>
+                  <p className="mb-0" style={{ color: 'var(--text-muted)', maxWidth: 400, margin: '0 auto' }}>
+                    Acompanhamento estratégico de SLAs, volume de chamados e performance das equipes aparecerá aqui.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
-          <div style={{ display: abaAtiva === 'meus' ? 'block' : 'none' }}>
-            <AbaMinhasDemandas />
-          </div>
+          {abaAtiva === 'abrir' && <AbaCriacao />}
+
+          {abaAtiva === 'meus' && <AbaMinhasDemandas />}
+
         </main>
-      </div>
-
-      {/* 3. NOTIFICAÇÕES (DIREITA) */}
-      <div style={{ display: 'flex', height: '100%' }}>
-        {/* BOTÃO TRIGGER */}
-        <button
-          onClick={() => setNotificacoesAbertas(!notificacoesAbertas)}
-          style={{
-            width: '40px', /* Levemente mais largo para comportar o ícone perfeitamente */
-            height: '100%',
-            backgroundColor: '#f2f2f7',
-            border: 'none',
-            borderLeft: `1px solid ${cores.borda}`,
-            cursor: 'pointer',
-            fontSize: '16px',
-            color: cores.textoSecundario,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: '0.2s'
-          }}
-          title="Alternar Notificações"
-        >
-          {/* Seta condicional: Aponta para a esquerda quando fechado, para a direita quando aberto */}
-          {notificacoesAbertas ? '❯' : '❮'}
-        </button>
-
-        {/* PAINEL LATERAL */}
-        <aside style={{
-          width: notificacoesAbertas ? '300px' : '0px',
-          backgroundColor: '#fff',
-          borderLeft: notificacoesAbertas ? `1px solid ${cores.borda}` : 'none',
-          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          overflow: 'hidden'
-        }}>
-          <div style={{ padding: '20px', width: '300px' }}>
-            <h3 style={{ fontSize: '14px', textTransform: 'uppercase', color: cores.textoSecundario }}>Notificações</h3>
-            <hr style={{ border: 'none', borderTop: `1px solid ${cores.borda}`, margin: '15px 0' }} />
-            <p style={{ color: cores.textoSecundario, fontSize: '12px' }}>Sem novas atividades no momento.</p>
-          </div>
-        </aside>
       </div>
     </div>
   );
