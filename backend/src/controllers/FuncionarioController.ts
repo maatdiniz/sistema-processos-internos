@@ -68,7 +68,12 @@ export const FuncionarioController = {
                 return res.status(400).json({ erro: 'Departamento informado não existe.' });
             }
 
-            const senhaHash = hashSenha(dados.senha || dados.matricula); // Senha padrão = matrícula
+            // Gerar senha aleatória de 6 caracteres (letras e números) se não for informada
+            let senhaGerada = dados.senha;
+            if (!senhaGerada) {
+                senhaGerada = Math.random().toString(36).substring(2, 8);
+            }
+            const senhaHash = hashSenha(senhaGerada);
 
             const resultado = await db.run(
                 'INSERT INTO funcionarios (matricula, nome, email, senha_hash, perfil, departamento_id) VALUES (?, ?, ?, ?, ?, ?)',
@@ -77,7 +82,8 @@ export const FuncionarioController = {
 
             return res.status(201).json({
                 mensagem: 'Funcionário cadastrado com sucesso!',
-                funcionario: { id: resultado.lastID, matricula: dados.matricula, nome: dados.nome }
+                funcionario: { id: resultado.lastID, matricula: dados.matricula, nome: dados.nome },
+                senha_gerada: dados.senha ? undefined : senhaGerada // Retorna apenas se foi gerada pelo sistema
             });
         } catch (erro) {
             if (erro instanceof z.ZodError) {

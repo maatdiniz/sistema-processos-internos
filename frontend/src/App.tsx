@@ -1,5 +1,7 @@
-// Arquivo: frontend/src/App.tsx
 import { useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { AbaCriacao } from './pages/AbaCriacao';
 import { AtribuidasAMim } from './pages/AtribuidasAMim';
@@ -14,8 +16,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import './index.css';
 import './App.css';
 
-export default function App() {
+function MainLayout() {
   const [abaAtiva, setAbaAtiva] = useState('visao');
+  const { usuario, logout } = useAuth();
 
   const menuPrincipal = [
     { id: 'visao',       icon: 'bi-grid-1x2',          label: 'Dashboard',          titulo: 'Visão Geral' },
@@ -27,11 +30,19 @@ export default function App() {
 
   const menuSistema = [
     { id: 'recursos', icon: 'bi-lightbulb', label: 'Solicitar Recursos', titulo: 'Solicitar Recursos' },
-    { id: 'admin', icon: 'bi-gear', label: 'Administração', titulo: 'Painel Administrativo' },
+    ...(usuario?.perfil === 'admin' ? [{ id: 'admin', icon: 'bi-gear', label: 'Administração', titulo: 'Painel Administrativo' }] : [])
   ];
 
   const todosItens = [...menuPrincipal, ...menuSistema];
   const tituloAtual = todosItens.find(i => i.id === abaAtiva)?.titulo || '';
+
+  const getIniciais = (nome: string) => {
+    return nome.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <div className="admin-layout">
@@ -68,11 +79,14 @@ export default function App() {
 
         <div className="sidebar-footer">
           <div className="sidebar-user">
-            <div className="sidebar-avatar">MD</div>
+            <div className="sidebar-avatar">{usuario ? getIniciais(usuario.nome) : ''}</div>
             <div className="sidebar-user-info">
-              <div className="sidebar-user-name">Matheus Diniz</div>
-              <div className="sidebar-user-role">Administrador</div>
+              <div className="sidebar-user-name">{usuario?.nome}</div>
+              <div className="sidebar-user-role">{usuario?.perfil === 'admin' ? 'Administrador' : 'Usuário'}</div>
             </div>
+            <button className="btn-icon ms-auto text-danger" onClick={handleLogout} title="Sair">
+              <i className="bi bi-box-arrow-right"></i>
+            </button>
           </div>
         </div>
       </aside>
@@ -93,10 +107,21 @@ export default function App() {
           {abaAtiva === 'solicitacoes' && <Solicitacoes />}
           {abaAtiva === 'todas' && <TodasDemandas />}
           {abaAtiva === 'recursos' && <SolicitarRecursos />}
-          {abaAtiva === 'admin' && <AdminPanel />}
+          {abaAtiva === 'admin' && usuario?.perfil === 'admin' && <AdminPanel />}
         </main>
       </div>
       <ChatWidget />
     </div>
+  );
+}
+
+export default function App() {
+  const { usuario } = useAuth();
+
+  return (
+    <Routes>
+      <Route path="/login" element={usuario ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/*" element={usuario ? <MainLayout /> : <Navigate to="/login" replace />} />
+    </Routes>
   );
 }

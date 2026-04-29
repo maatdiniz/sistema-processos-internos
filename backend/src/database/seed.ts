@@ -106,7 +106,7 @@ export async function executarSeed() {
     if (admins.total === 0) {
         await db.run(
             'INSERT INTO funcionarios (matricula, nome, email, senha_hash, perfil, departamento_id) VALUES (?, ?, ?, ?, ?, ?)',
-            ['admin', 'Administrador CEAD', 'admin@cead.edu.br', hashSenha('admin123'), 'admin', 1]
+            ['admin', 'Administrador', 'admin@cead.edu.br', hashSenha('admin123'), 'admin', 1]
         );
         console.log('   ✓ Usuário administrador padrão criado (matrícula: admin, senha: admin123)');
     }

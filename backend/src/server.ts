@@ -15,14 +15,19 @@ import { FuncionarioController } from './controllers/FuncionarioController';
 import { DemandaController } from './controllers/DemandaController';
 import { SolicitacaoRecursoController } from './controllers/SolicitacaoRecursoController';
 import { ChatController } from './controllers/ChatController';
+import { AuthController } from './controllers/AuthController';
+import { authMiddleware } from './middlewares/auth';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+// ── Autenticação ──
+app.post('/auth/login', AuthController.login);
+
 // ── Rotas Admin (CRUD completo) ──
-app.use('/admin', rotasAdmin);
+app.use('/admin', authMiddleware, rotasAdmin);
 
 // ── Rotas Públicas (somente leitura, para selectors) ──
 app.get('/departamentos', DepartamentoController.listarAtivos);
@@ -31,13 +36,13 @@ app.get('/prioridades', PrioridadeController.listar);
 app.get('/funcionarios/departamento/:departamento_id', FuncionarioController.listarPorDepartamento);
 
 // ── Rotas de Demandas ──
-app.post('/demandas', DemandaController.criar);
-app.get('/demandas', DemandaController.listar);
+app.post('/demandas', authMiddleware, DemandaController.criar);
+app.get('/demandas', authMiddleware, DemandaController.listar);
 
-// ── Rotas de Solicitações de Recurso (públicas) ──
-app.post('/solicitacoes-recurso', SolicitacaoRecursoController.criar);
-app.get('/solicitacoes-recurso', SolicitacaoRecursoController.listar);
-app.get('/solicitacoes-recurso/:id', SolicitacaoRecursoController.detalhe);
+// ── Rotas de Solicitações de Recurso ──
+app.post('/solicitacoes-recurso', authMiddleware, SolicitacaoRecursoController.criar);
+app.get('/solicitacoes-recurso', authMiddleware, SolicitacaoRecursoController.listar);
+app.get('/solicitacoes-recurso/:id', authMiddleware, SolicitacaoRecursoController.detalhe);
 
 // ── Rotas de Chat (públicas) ──
 app.post('/chat/sessoes', ChatController.criarSessao);
