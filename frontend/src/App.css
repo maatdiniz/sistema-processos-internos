@@ -1102,8 +1102,12 @@
   animation: fadeInUp 0.2s ease-out;
 }
 
-.chat-bubble-user {
+.chat-bubble-me {
   align-self: flex-end;
+}
+
+.chat-bubble-user {
+  align-self: flex-start;
 }
 
 .chat-bubble-system {
@@ -1113,15 +1117,15 @@
 
 .chat-bubble-content {
   padding: 10px 14px;
-  border-radius: 16px 16px 4px 16px;
-  background: var(--primary);
-  color: #fff;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--bg-muted);
+  color: var(--text-primary);
   font-size: 13px;
   line-height: 1.5;
   word-break: break-word;
 }
 
-.chat-bubble-user .chat-bubble-content {
+.chat-bubble-me .chat-bubble-content {
   background: var(--primary);
   color: #fff;
   border-radius: 16px 16px 4px 16px;

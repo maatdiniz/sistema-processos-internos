@@ -40,6 +40,7 @@ rotasAdmin.get('/solicitacoes-recurso/log/:id', SolicitacaoRecursoController.con
 
 // ── Chat Service Desk (ações admin) ──
 rotasAdmin.get('/chat/sessoes', ChatController.listarSessoesAdmin);
+rotasAdmin.post('/chat/sessoes', ChatController.criarSessaoAdmin);
 rotasAdmin.patch('/chat/sessoes/:id/aceitar', ChatController.aceitar);
 rotasAdmin.get('/chat/sessoes/:id/log', ChatController.consultarLog);
 

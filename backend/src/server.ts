@@ -1,5 +1,6 @@
 // Arquivo: backend/src/server.ts
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import { abrirBanco } from './database/connection';
 import { executarSeed } from './database/seed';
@@ -17,8 +18,13 @@ import { SolicitacaoRecursoController } from './controllers/SolicitacaoRecursoCo
 import { ChatController } from './controllers/ChatController';
 import { AuthController } from './controllers/AuthController';
 import { authMiddleware } from './middlewares/auth';
+import { initSocket } from './socket';
 
 const app = express();
+const server = createServer(app);
+
+// Inicializar WebSocket
+initSocket(server);
 
 app.use(cors());
 app.use(express.json());
@@ -44,16 +50,17 @@ app.post('/solicitacoes-recurso', authMiddleware, SolicitacaoRecursoController.c
 app.get('/solicitacoes-recurso', authMiddleware, SolicitacaoRecursoController.listar);
 app.get('/solicitacoes-recurso/:id', authMiddleware, SolicitacaoRecursoController.detalhe);
 
-// ── Rotas de Chat (públicas) ──
-app.post('/chat/sessoes', ChatController.criarSessao);
-app.get('/chat/sessoes', ChatController.listarSessoes);
-app.get('/chat/sessoes/:id/mensagens', ChatController.listarMensagens);
-app.post('/chat/sessoes/:id/mensagens', ChatController.enviarMensagem);
-app.patch('/chat/sessoes/:id/encerrar', ChatController.encerrar);
+// ── Rotas de Chat ──
+app.post('/chat/sessoes', authMiddleware, ChatController.criarSessao);
+app.get('/chat/sessoes', authMiddleware, ChatController.listarSessoes);
+app.get('/chat/historico', authMiddleware, ChatController.historicoContinuo);
+app.get('/chat/sessoes/:id/mensagens', authMiddleware, ChatController.listarMensagens);
+app.post('/chat/sessoes/:id/mensagens', authMiddleware, ChatController.enviarMensagem);
+app.patch('/chat/sessoes/:id/encerrar', authMiddleware, ChatController.encerrar);
 
 const PORT = 3000;
 
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
     console.log(`🚀 Servidor rodando na porta ${PORT}`);
 
     try {

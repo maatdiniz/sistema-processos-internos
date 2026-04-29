@@ -1,5 +1,6 @@
-// Arquivo: frontend/src/components/ChatWidget.tsx
 import { useState, useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { useAuth } from '../contexts/AuthContext';
 
 const API = 'http://localhost:3000';
 
@@ -22,67 +23,85 @@ interface Sessao {
 }
 
 export function ChatWidget() {
+    const { token, usuario } = useAuth();
     const [aberto, setAberto] = useState(false);
-    const [sessaoAtiva, setSessaoAtiva] = useState<Sessao | null>(null);
+    
+    const [sessoes, setSessoes] = useState<Sessao[]>([]);
     const [mensagens, setMensagens] = useState<Mensagem[]>([]);
+    
     const [textoMsg, setTextoMsg] = useState('');
     const [assunto, setAssunto] = useState('');
-    const [statusSessao, setStatusSessao] = useState('');
+    
     const [carregando, setCarregando] = useState(false);
     const [enviando, setEnviando] = useState(false);
     const [erro, setErro] = useState('');
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const pollingRef = useRef<number | null>(null);
+    const [exibirFormNovo, setExibirFormNovo] = useState(false);
 
-    // Auto-scroll para última mensagem
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const socketRef = useRef<Socket | null>(null);
+
+    const sessaoAtiva = sessoes.length > 0 && sessoes[sessoes.length - 1].status !== 'Encerrado' 
+        ? sessoes[sessoes.length - 1] 
+        : null;
+
+    // Auto-scroll
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
+    useEffect(() => { scrollToBottom(); }, [mensagens, aberto, exibirFormNovo]);
 
-    useEffect(() => { scrollToBottom(); }, [mensagens]);
-
-    // Buscar sessão ativa ao abrir
+    // Conexão WebSocket e Histórico
     useEffect(() => {
-        if (aberto && !sessaoAtiva) {
-            buscarSessaoAtiva();
+        if (!token) return;
+
+        // Iniciar conexão socket
+        const socket = io('http://localhost:3000', {
+            auth: { token }
+        });
+        socketRef.current = socket;
+
+        socket.on('nova_mensagem', (msg: Mensagem) => {
+            setMensagens(prev => {
+                if (prev.find(m => m.id === msg.id)) return prev;
+                return [...prev, msg];
+            });
+        });
+
+        socket.on('sessao_atualizada', (data: { id: number, status: string }) => {
+            setSessoes(prev => prev.map(s => s.id === data.id ? { ...s, status: data.status } : s));
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [token]);
+
+    // Buscar histórico ao abrir pela primeira vez
+    useEffect(() => {
+        if (aberto && sessoes.length === 0) {
+            buscarHistorico();
         }
     }, [aberto]);
 
-    // Polling de mensagens quando há sessão ativa
-    useEffect(() => {
-        if (sessaoAtiva && sessaoAtiva.status !== 'Encerrado') {
-            pollingRef.current = window.setInterval(() => {
-                buscarMensagens(sessaoAtiva.id);
-            }, 3000);
-            return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
-        }
-    }, [sessaoAtiva]);
-
-    const buscarSessaoAtiva = async () => {
+    const buscarHistorico = async () => {
         try {
-            const res = await fetch(`${API}/chat/sessoes`);
-            if (!res.ok) return;
-            const sessoes: Sessao[] = await res.json();
-            const ativa = sessoes.find(s => s.status === 'Aguardando' || s.status === 'Ativo');
-            if (ativa) {
-                setSessaoAtiva(ativa);
-                setStatusSessao(ativa.status);
-                await buscarMensagens(ativa.id);
-            }
-        } catch { /* silencioso */ }
-    };
-
-    const buscarMensagens = async (sessaoId: number) => {
-        try {
-            const res = await fetch(`${API}/chat/sessoes/${sessaoId}/mensagens`);
+            const res = await fetch(`${API}/chat/historico`);
             if (!res.ok) return;
             const data = await res.json();
+            setSessoes(data.sessoes);
             setMensagens(data.mensagens);
-            if (data.status) setStatusSessao(data.status);
-            if (data.status === 'Encerrado') {
-                if (pollingRef.current) clearInterval(pollingRef.current);
+
+            // Se não tem sessão ativa, exibir o form de novo atendimento (a menos que não tenha nenhuma sessão)
+            if (data.sessoes.length === 0 || data.sessoes[data.sessoes.length - 1].status === 'Encerrado') {
+                setExibirFormNovo(true);
+            } else {
+                setExibirFormNovo(false);
+                // Entrar na sala do chat via socket para atualizações mais rápidas
+                socketRef.current?.emit('join_chat', data.sessoes[data.sessoes.length - 1].id);
             }
-        } catch { /* silencioso */ }
+        } catch (e) {
+            console.error('Erro ao buscar histórico', e);
+        }
     };
 
     const abrirChat = async () => {
@@ -97,11 +116,11 @@ export function ChatWidget() {
             });
             const data = await res.json();
             if (res.ok) {
-                const novaSessao: Sessao = { id: data.id, protocolo: data.protocolo, assunto, status: 'Aguardando', created_at: new Date().toISOString() };
-                setSessaoAtiva(novaSessao);
-                setStatusSessao('Aguardando');
+                // Ao criar, o servidor já envia a mensagem automática via websocket se estivermos ouvindo.
+                // Mas para garantir, podemos dar reload no histórico.
+                await buscarHistorico();
                 setAssunto('');
-                await buscarMensagens(data.id);
+                setExibirFormNovo(false);
             } else {
                 setErro(data.erro || 'Erro ao abrir chat.');
             }
@@ -120,7 +139,6 @@ export function ChatWidget() {
             });
             if (res.ok) {
                 setTextoMsg('');
-                await buscarMensagens(sessaoAtiva.id);
             }
         } catch { /* silencioso */ }
         finally { setEnviando(false); }
@@ -129,21 +147,9 @@ export function ChatWidget() {
     const encerrar = async () => {
         if (!sessaoAtiva) return;
         try {
-            const res = await fetch(`${API}/chat/sessoes/${sessaoAtiva.id}/encerrar`, { method: 'PATCH' });
-            if (res.ok) {
-                setStatusSessao('Encerrado');
-                if (pollingRef.current) clearInterval(pollingRef.current);
-                await buscarMensagens(sessaoAtiva.id);
-            }
+            await fetch(`${API}/chat/sessoes/${sessaoAtiva.id}/encerrar`, { method: 'PATCH' });
+            setExibirFormNovo(true);
         } catch { /* silencioso */ }
-    };
-
-    const novoChat = () => {
-        setSessaoAtiva(null);
-        setMensagens([]);
-        setStatusSessao('');
-        setTextoMsg('');
-        setAssunto('');
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -153,6 +159,48 @@ export function ChatWidget() {
     const formatHora = (dt: string) => {
         try { return new Date(dt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); }
         catch { return ''; }
+    };
+
+    // Agrupar mensagens por sessão para renderizar os separadores
+    const renderizarMensagens = () => {
+        let elements: React.ReactNode[] = [];
+        
+        sessoes.forEach(sessao => {
+            const msgsSessao = mensagens.filter(m => m.chat_sessao_id === sessao.id);
+            
+            // Renderizar separador
+            elements.push(
+                <div key={`sep-${sessao.id}`} style={{ textAlign: 'center', margin: '20px 0', fontSize: 12, color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+                    <div style={{ flex: 1, height: 1, backgroundColor: 'var(--border-color)' }}></div>
+                    <span style={{ padding: '0 10px', fontWeight: 600 }}>--- {sessao.protocolo} ---</span>
+                    <div style={{ flex: 1, height: 1, backgroundColor: 'var(--border-color)' }}></div>
+                </div>
+            );
+
+            // Renderizar mensagens
+            msgsSessao.forEach(m => {
+                const isMe = m.funcionario_id === usuario?.id;
+                elements.push(
+                    <div key={m.id} className={`chat-bubble chat-bubble-${m.tipo === 'sistema' ? 'system' : (isMe ? 'me' : 'user')}`}>
+                        {m.tipo === 'sistema' ? (
+                            <div className="chat-bubble-system-text">
+                                <i className="bi bi-info-circle me-1"></i>{m.mensagem}
+                            </div>
+                        ) : (
+                            <>
+                                <div className="chat-bubble-content">{m.mensagem}</div>
+                                <div className="chat-bubble-time">
+                                    {!isMe && m.autor_nome && <span style={{fontWeight: 600, marginRight: 5}}>{m.autor_nome}</span>}
+                                    {formatHora(m.created_at)}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                );
+            });
+        });
+
+        return elements;
     };
 
     return (
@@ -181,95 +229,85 @@ export function ChatWidget() {
                                 </div>
                                 <div className="chat-header-status">
                                     {sessaoAtiva ? (
-                                        <span className={`chat-status-dot chat-status-${statusSessao.toLowerCase().replace(' ', '-')}`}></span>
+                                        <span className={`chat-status-dot chat-status-${sessaoAtiva.status.toLowerCase().replace(' ', '-')}`}></span>
                                     ) : null}
-                                    {sessaoAtiva ? statusSessao : 'Tire suas dúvidas conosco'}
+                                    {sessaoAtiva ? sessaoAtiva.status : 'Tire suas dúvidas conosco'}
                                 </div>
                             </div>
                         </div>
-                        {sessaoAtiva && statusSessao !== 'Encerrado' && (
-                            <button className="btn-icon" onClick={encerrar} title="Encerrar chat" style={{ width: 30, height: 30, fontSize: 13 }}>
+                        {sessaoAtiva && sessaoAtiva.status !== 'Encerrado' && (
+                            <button className="btn-icon" onClick={encerrar} title="Encerrar chat" style={{ width: 30, height: 30, fontSize: 13, color: 'var(--text-color)' }}>
                                 <i className="bi bi-box-arrow-right"></i>
                             </button>
                         )}
                     </div>
 
                     {/* Corpo */}
-                    <div className="chat-body">
-                        {!sessaoAtiva ? (
-                            /* ── Tela inicial: abrir chat ── */
-                            <div className="chat-welcome">
-                                <div className="chat-welcome-icon">
-                                    <i className="bi bi-chat-heart"></i>
+                    <div className="chat-body" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div className="chat-messages" style={{ flex: 1, paddingBottom: 10 }}>
+                            {sessoes.length === 0 && !exibirFormNovo && (
+                                <div style={{textAlign: 'center', color: 'var(--text-muted)', marginTop: 40}}>
+                                    Carregando histórico...
                                 </div>
-                                <h6>Olá! 👋</h6>
-                                <p>Descreva brevemente o que precisa e um atendente irá te ajudar.</p>
-                                <div style={{ width: '100%' }}>
-                                    <input
-                                        type="text" className="form-control form-control-sm mb-2"
-                                        placeholder="Qual o assunto?"
-                                        value={assunto}
-                                        onChange={e => setAssunto(e.target.value)}
-                                        onKeyDown={e => { if (e.key === 'Enter') abrirChat(); }}
-                                    />
-                                    {erro && <div className="text-danger mb-2" style={{ fontSize: 12 }}>{erro}</div>}
-                                    <button className="btn btn-primary btn-sm w-100" onClick={abrirChat} disabled={carregando}>
-                                        {carregando ? 'Abrindo...' : <><i className="bi bi-send me-1"></i>Iniciar Conversa</>}
-                                    </button>
+                            )}
+
+                            {renderizarMensagens()}
+
+                            {/* Aviso de aguardando para a sessão ativa */}
+                            {sessaoAtiva && sessaoAtiva.status === 'Aguardando' && (
+                                <div className="chat-waiting-banner">
+                                    <i className="bi bi-hourglass-split"></i>
+                                    <span>Aguardando um atendente aceitar...</span>
                                 </div>
-                            </div>
-                        ) : (
-                            /* ── Área de mensagens ── */
-                            <div className="chat-messages">
-                                {statusSessao === 'Aguardando' && (
-                                    <div className="chat-waiting-banner">
-                                        <i className="bi bi-hourglass-split"></i>
-                                        <span>Aguardando um atendente aceitar...</span>
-                                    </div>
-                                )}
-                                {mensagens.map(m => (
-                                    <div key={m.id} className={`chat-bubble chat-bubble-${m.tipo === 'sistema' ? 'system' : 'user'}`}>
-                                        {m.tipo === 'sistema' ? (
-                                            <div className="chat-bubble-system-text">
-                                                <i className="bi bi-info-circle me-1"></i>{m.mensagem}
+                            )}
+
+                            {/* Formulário Novo Atendimento */}
+                            {exibirFormNovo && (
+                                <div className="chat-welcome mt-3" style={{ borderTop: sessoes.length > 0 ? '1px solid var(--border-color)' : 'none', paddingTop: 20 }}>
+                                    {sessoes.length === 0 && (
+                                        <>
+                                            <div className="chat-welcome-icon">
+                                                <i className="bi bi-chat-heart"></i>
                                             </div>
-                                        ) : (
-                                            <>
-                                                <div className="chat-bubble-content">{m.mensagem}</div>
-                                                <div className="chat-bubble-time">{formatHora(m.created_at)}</div>
-                                            </>
-                                        )}
-                                    </div>
-                                ))}
-                                {statusSessao === 'Encerrado' && (
-                                    <div style={{ textAlign: 'center', padding: '16px 0' }}>
-                                        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 8px' }}>Chat encerrado</p>
-                                        <button className="btn btn-outline-primary btn-sm" onClick={novoChat}>
-                                            <i className="bi bi-plus-circle me-1"></i>Novo Chat
+                                            <h6>Olá, {usuario?.nome.split(' ')[0]}! 👋</h6>
+                                            <p>Descreva brevemente o que precisa e um atendente irá te ajudar.</p>
+                                        </>
+                                    )}
+                                    <div style={{ width: '100%' }}>
+                                        <input
+                                            type="text" className="form-control form-control-sm mb-2"
+                                            placeholder="Qual o assunto?"
+                                            value={assunto}
+                                            onChange={e => setAssunto(e.target.value)}
+                                            onKeyDown={e => { if (e.key === 'Enter') abrirChat(); }}
+                                        />
+                                        {erro && <div className="text-danger mb-2" style={{ fontSize: 12 }}>{erro}</div>}
+                                        <button className="btn btn-primary btn-sm w-100" onClick={abrirChat} disabled={carregando}>
+                                            {carregando ? 'Abrindo...' : <><i className="bi bi-send me-1"></i>Iniciar {sessoes.length > 0 ? 'Novo' : ''} Atendimento</>}
                                         </button>
                                     </div>
-                                )}
-                                <div ref={messagesEndRef} />
-                            </div>
-                        )}
+                                </div>
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
                     </div>
 
                     {/* Input de mensagem */}
-                    {sessaoAtiva && statusSessao !== 'Encerrado' && (
+                    {sessaoAtiva && sessaoAtiva.status !== 'Encerrado' && (
                         <div className="chat-input-area">
                             <input
                                 type="text"
                                 className="chat-input"
-                                placeholder={statusSessao === 'Aguardando' ? 'Aguardando atendente...' : 'Digite sua mensagem...'}
+                                placeholder={sessaoAtiva.status === 'Aguardando' ? 'Aguardando atendente...' : 'Digite sua mensagem...'}
                                 value={textoMsg}
                                 onChange={e => setTextoMsg(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                disabled={statusSessao === 'Aguardando' || enviando}
+                                disabled={sessaoAtiva.status === 'Aguardando' || enviando}
                             />
                             <button
                                 className="chat-send-btn"
                                 onClick={enviar}
-                                disabled={!textoMsg.trim() || statusSessao === 'Aguardando' || enviando}
+                                disabled={!textoMsg.trim() || sessaoAtiva.status === 'Aguardando' || enviando}
                             >
                                 <i className="bi bi-send-fill"></i>
                             </button>
