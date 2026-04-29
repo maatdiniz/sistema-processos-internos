@@ -6,6 +6,7 @@ import { AtribuidasAMim } from './pages/AtribuidasAMim';
 import { Solicitacoes } from './pages/Solicitacoes';
 import { TodasDemandas } from './pages/TodasDemandas';
 import { AdminPanel } from './pages/admin/AdminPanel';
+import { SolicitarRecursos } from './pages/SolicitarRecursos';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -24,6 +25,7 @@ export default function App() {
   ];
 
   const menuSistema = [
+    { id: 'recursos', icon: 'bi-lightbulb', label: 'Solicitar Recursos', titulo: 'Solicitar Recursos' },
     { id: 'admin', icon: 'bi-gear', label: 'Administração', titulo: 'Painel Administrativo' },
   ];
 
@@ -89,6 +91,7 @@ export default function App() {
           {abaAtiva === 'atribuidas' && <AtribuidasAMim />}
           {abaAtiva === 'solicitacoes' && <Solicitacoes />}
           {abaAtiva === 'todas' && <TodasDemandas />}
+          {abaAtiva === 'recursos' && <SolicitarRecursos />}
           {abaAtiva === 'admin' && <AdminPanel />}
         </main>
       </div>

@@ -96,6 +96,40 @@ export async function abrirBanco(): Promise<Database> {
             FOREIGN KEY (demanda_id) REFERENCES demandas(id),
             FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id)
         );
+
+        -- Solicitações de novos recursos (tipos de demanda)
+        CREATE TABLE IF NOT EXISTS solicitacoes_recurso (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            protocolo TEXT NOT NULL UNIQUE,
+            nome_sugerido TEXT NOT NULL,
+            descricao_sugerida TEXT,
+            nome_aprovado TEXT,
+            descricao_aprovada TEXT,
+            status TEXT NOT NULL DEFAULT 'Pendente',
+            justificativa_admin TEXT,
+            funcionario_solicitante_id INTEGER,
+            funcionario_admin_id INTEGER,
+            tipo_demanda_criado_id INTEGER,
+            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            FOREIGN KEY (funcionario_solicitante_id) REFERENCES funcionarios(id),
+            FOREIGN KEY (funcionario_admin_id) REFERENCES funcionarios(id),
+            FOREIGN KEY (tipo_demanda_criado_id) REFERENCES tipos_demanda(id)
+        );
+
+        -- Log de todas as ações sobre solicitações de recurso
+        CREATE TABLE IF NOT EXISTS log_solicitacoes_recurso (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            solicitacao_recurso_id INTEGER NOT NULL,
+            funcionario_id INTEGER,
+            acao TEXT NOT NULL,
+            descricao TEXT,
+            dados_anteriores TEXT,
+            dados_novos TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            FOREIGN KEY (solicitacao_recurso_id) REFERENCES solicitacoes_recurso(id),
+            FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id)
+        );
     `);
 
     return dbInstance;

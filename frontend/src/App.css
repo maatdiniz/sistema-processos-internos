@@ -822,3 +822,98 @@
   color: var(--text-muted);
   margin-top: 4px;
 }
+
+/* ══════════════════════════════════════════════
+   SOLICITAR RECURSOS — Status badges
+   ══════════════════════════════════════════════ */
+.status-badge.status-pendente {
+  background: var(--info-light);
+  color: var(--info);
+}
+
+.status-badge.status-pendente::before {
+  background: var(--info);
+}
+
+.status-badge.status-em-analise {
+  background: var(--warning-light);
+  color: #D97706;
+}
+
+.status-badge.status-em-analise::before {
+  background: var(--warning);
+}
+
+.status-badge.status-aprovado {
+  background: var(--success-light);
+  color: #059669;
+}
+
+.status-badge.status-aprovado::before {
+  background: var(--success);
+}
+
+.status-badge.status-recusado {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.status-badge.status-recusado::before {
+  background: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════
+   MODAL — Overlay + Card para aprovação/recusa
+   ══════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.modal-recurso {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: fadeInUp 0.25s ease-out;
+}
+
+.modal-recurso-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.modal-recurso-header h5 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+}
+
+.modal-recurso-body {
+  padding: 20px 24px;
+}
+
+.modal-recurso-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border-light);
+}

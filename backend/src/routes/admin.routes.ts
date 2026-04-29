@@ -4,6 +4,7 @@ import { DepartamentoController } from '../controllers/DepartamentoController';
 import { FuncionarioController } from '../controllers/FuncionarioController';
 import { TipoDemandaController } from '../controllers/TipoDemandaController';
 import { PrioridadeController } from '../controllers/PrioridadeController';
+import { SolicitacaoRecursoController } from '../controllers/SolicitacaoRecursoController';
 
 const rotasAdmin = Router();
 
@@ -30,4 +31,11 @@ rotasAdmin.get('/prioridades', PrioridadeController.listar);
 rotasAdmin.post('/prioridades', PrioridadeController.criar);
 rotasAdmin.put('/prioridades/:id', PrioridadeController.atualizar);
 
+// ── Solicitações de Recurso (ações admin) ──
+rotasAdmin.patch('/solicitacoes-recurso/:id/analisar', SolicitacaoRecursoController.analisar);
+rotasAdmin.put('/solicitacoes-recurso/:id/aprovar', SolicitacaoRecursoController.aprovar);
+rotasAdmin.put('/solicitacoes-recurso/:id/recusar', SolicitacaoRecursoController.recusar);
+rotasAdmin.get('/solicitacoes-recurso/log/:id', SolicitacaoRecursoController.consultarLog);
+
 export default rotasAdmin;
+

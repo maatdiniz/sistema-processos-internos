@@ -13,6 +13,7 @@ import { TipoDemandaController } from './controllers/TipoDemandaController';
 import { PrioridadeController } from './controllers/PrioridadeController';
 import { FuncionarioController } from './controllers/FuncionarioController';
 import { DemandaController } from './controllers/DemandaController';
+import { SolicitacaoRecursoController } from './controllers/SolicitacaoRecursoController';
 
 const app = express();
 
@@ -31,6 +32,11 @@ app.get('/funcionarios/departamento/:departamento_id', FuncionarioController.lis
 // ── Rotas de Demandas ──
 app.post('/demandas', DemandaController.criar);
 app.get('/demandas', DemandaController.listar);
+
+// ── Rotas de Solicitações de Recurso (públicas) ──
+app.post('/solicitacoes-recurso', SolicitacaoRecursoController.criar);
+app.get('/solicitacoes-recurso', SolicitacaoRecursoController.listar);
+app.get('/solicitacoes-recurso/:id', SolicitacaoRecursoController.detalhe);
 
 const PORT = 3000;
 
