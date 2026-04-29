@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: spi_backend
+    ports:
+      - "3000:3000"
+    volumes:
+      # Sincroniza o código local com o container (Hot Reload)
+      - ./backend:/app
+      # Impede que a pasta node_modules local sobrescreva a do container
+      - /app/node_modules
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: spi_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      # Sincroniza o código local com o container (Hot Reload)
+      - ./frontend:/app
+      # Impede que a pasta node_modules local sobrescreva a do container
+      - /app/node_modules
+    # O --host é necessário para o Vite ficar acessível fora do container
+    command: npm run dev -- --host
+    depends_on:
+      - backend

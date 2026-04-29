@@ -1,0 +1,4 @@
+node_modules
+.env
+processos.sqlite
+dev.db
