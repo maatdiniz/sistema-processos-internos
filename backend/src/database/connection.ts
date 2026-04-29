@@ -130,6 +130,44 @@ export async function abrirBanco(): Promise<Database> {
             FOREIGN KEY (solicitacao_recurso_id) REFERENCES solicitacoes_recurso(id),
             FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id)
         );
+
+        -- Sessões de chat do service desk
+        CREATE TABLE IF NOT EXISTS chat_sessoes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            protocolo TEXT NOT NULL UNIQUE,
+            assunto TEXT NOT NULL,
+            funcionario_usuario_id INTEGER,
+            funcionario_admin_id INTEGER,
+            status TEXT NOT NULL DEFAULT 'Aguardando',
+            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            encerrado_at TEXT,
+            FOREIGN KEY (funcionario_usuario_id) REFERENCES funcionarios(id),
+            FOREIGN KEY (funcionario_admin_id) REFERENCES funcionarios(id)
+        );
+
+        -- Mensagens de cada sessão de chat
+        CREATE TABLE IF NOT EXISTS chat_mensagens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_sessao_id INTEGER NOT NULL,
+            funcionario_id INTEGER,
+            mensagem TEXT NOT NULL,
+            tipo TEXT NOT NULL DEFAULT 'texto',
+            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            FOREIGN KEY (chat_sessao_id) REFERENCES chat_sessoes(id),
+            FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id)
+        );
+
+        -- Log de ações do chat
+        CREATE TABLE IF NOT EXISTS log_chat (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chat_sessao_id INTEGER NOT NULL,
+            funcionario_id INTEGER,
+            acao TEXT NOT NULL,
+            descricao TEXT,
+            created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+            FOREIGN KEY (chat_sessao_id) REFERENCES chat_sessoes(id),
+            FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id)
+        );
     `);
 
     return dbInstance;

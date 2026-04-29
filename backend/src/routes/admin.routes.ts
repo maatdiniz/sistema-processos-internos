@@ -5,6 +5,7 @@ import { FuncionarioController } from '../controllers/FuncionarioController';
 import { TipoDemandaController } from '../controllers/TipoDemandaController';
 import { PrioridadeController } from '../controllers/PrioridadeController';
 import { SolicitacaoRecursoController } from '../controllers/SolicitacaoRecursoController';
+import { ChatController } from '../controllers/ChatController';
 
 const rotasAdmin = Router();
 
@@ -37,5 +38,9 @@ rotasAdmin.put('/solicitacoes-recurso/:id/aprovar', SolicitacaoRecursoController
 rotasAdmin.put('/solicitacoes-recurso/:id/recusar', SolicitacaoRecursoController.recusar);
 rotasAdmin.get('/solicitacoes-recurso/log/:id', SolicitacaoRecursoController.consultarLog);
 
-export default rotasAdmin;
+// ── Chat Service Desk (ações admin) ──
+rotasAdmin.get('/chat/sessoes', ChatController.listarSessoesAdmin);
+rotasAdmin.patch('/chat/sessoes/:id/aceitar', ChatController.aceitar);
+rotasAdmin.get('/chat/sessoes/:id/log', ChatController.consultarLog);
 
+export default rotasAdmin;

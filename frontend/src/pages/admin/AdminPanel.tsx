@@ -4,12 +4,14 @@ import { AdminDepartamentos } from './AdminDepartamentos';
 import { AdminTiposDemanda } from './AdminTiposDemanda';
 import { AdminPrioridades } from './AdminPrioridades';
 import { AdminFuncionarios } from './AdminFuncionarios';
+import { AdminChat } from './AdminChat';
 
 const abas = [
     { id: 'departamentos', label: 'Departamentos', icon: 'bi-building' },
     { id: 'tipos', label: 'Tipos de Demanda', icon: 'bi-tag' },
     { id: 'prioridades', label: 'Prioridades', icon: 'bi-flag' },
     { id: 'funcionarios', label: 'Funcionários', icon: 'bi-people' },
+    { id: 'chat', label: 'Suporte Chat', icon: 'bi-chat-dots' },
 ];
 
 export function AdminPanel() {
@@ -49,6 +51,7 @@ export function AdminPanel() {
                 {abaAdmin === 'tipos' && <AdminTiposDemanda />}
                 {abaAdmin === 'prioridades' && <AdminPrioridades />}
                 {abaAdmin === 'funcionarios' && <AdminFuncionarios />}
+                {abaAdmin === 'chat' && <AdminChat />}
             </div>
         </div>
     );

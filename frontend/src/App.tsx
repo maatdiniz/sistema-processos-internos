@@ -7,6 +7,7 @@ import { Solicitacoes } from './pages/Solicitacoes';
 import { TodasDemandas } from './pages/TodasDemandas';
 import { AdminPanel } from './pages/admin/AdminPanel';
 import { SolicitarRecursos } from './pages/SolicitarRecursos';
+import { ChatWidget } from './components/ChatWidget';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -95,6 +96,7 @@ export default function App() {
           {abaAtiva === 'admin' && <AdminPanel />}
         </main>
       </div>
+      <ChatWidget />
     </div>
   );
 }

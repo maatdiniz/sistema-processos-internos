@@ -14,6 +14,7 @@ import { PrioridadeController } from './controllers/PrioridadeController';
 import { FuncionarioController } from './controllers/FuncionarioController';
 import { DemandaController } from './controllers/DemandaController';
 import { SolicitacaoRecursoController } from './controllers/SolicitacaoRecursoController';
+import { ChatController } from './controllers/ChatController';
 
 const app = express();
 
@@ -37,6 +38,13 @@ app.get('/demandas', DemandaController.listar);
 app.post('/solicitacoes-recurso', SolicitacaoRecursoController.criar);
 app.get('/solicitacoes-recurso', SolicitacaoRecursoController.listar);
 app.get('/solicitacoes-recurso/:id', SolicitacaoRecursoController.detalhe);
+
+// ── Rotas de Chat (públicas) ──
+app.post('/chat/sessoes', ChatController.criarSessao);
+app.get('/chat/sessoes', ChatController.listarSessoes);
+app.get('/chat/sessoes/:id/mensagens', ChatController.listarMensagens);
+app.post('/chat/sessoes/:id/mensagens', ChatController.enviarMensagem);
+app.patch('/chat/sessoes/:id/encerrar', ChatController.encerrar);
 
 const PORT = 3000;
 
