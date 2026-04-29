@@ -56,9 +56,11 @@ export function AdminChat() {
 
     useEffect(() => { scrollToBottom(); }, [mensagens]);
 
+    const authHeaders = { 'Authorization': "Bearer $token" };
+
     const carregarSessoes = async () => {
         try {
-            const res = await fetch(`${API}/chat/sessoes`);
+            const res = await fetch(`${API}/admin/chat/sessoes`, { headers: authHeaders });
             if (res.ok) setSessoes(await res.json());
         } catch { console.error('Erro ao carregar sessões'); }
         finally { setCarregando(false); }
@@ -66,7 +68,7 @@ export function AdminChat() {
 
     const carregarFuncionarios = async () => {
         try {
-            const res = await fetch(`${API}/funcionarios`);
+            const res = await fetch(`${API}/funcionarios`, { headers: authHeaders });
             if (res.ok) setFuncionarios(await res.json());
         } catch { console.error('Erro ao carregar funcionários'); }
     };
@@ -107,7 +109,7 @@ export function AdminChat() {
 
     const buscarMensagens = async (id: number) => {
         try {
-            const res = await fetch(`${API}/chat/sessoes/${id}/mensagens`);
+            const res = await fetch(`${API}/chat/sessoes/${id}/mensagens`, { headers: authHeaders });
             if (!res.ok) return;
             const data = await res.json();
             setMensagens(data.mensagens);
@@ -116,7 +118,7 @@ export function AdminChat() {
 
     const aceitar = async (id: number) => {
         try {
-            const res = await fetch(`${API}/chat/sessoes/${id}/aceitar`, { method: 'PATCH' });
+            const res = await fetch(`${API}/chat/sessoes/${id}/aceitar`, { method: 'PATCH', headers: authHeaders });
             if (res.ok) {
                 if (sessaoAberta?.id === id) await buscarMensagens(id);
             } else {
@@ -144,7 +146,7 @@ export function AdminChat() {
         try {
             const res = await fetch(`${API}/chat/sessoes/${sessaoAberta.id}/mensagens`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({ mensagem: textoMsg })
             });
             if (res.ok) setTextoMsg('');
@@ -153,7 +155,7 @@ export function AdminChat() {
 
     const encerrar = async (id: number) => {
         try {
-            await fetch(`${API}/chat/sessoes/${id}/encerrar`, { method: 'PATCH' });
+            await fetch(`${API}/chat/sessoes/${id}/encerrar`, { method: 'PATCH', headers: authHeaders });
         } catch { alert('Erro de conexão.'); }
     };
 
@@ -169,7 +171,7 @@ export function AdminChat() {
         try {
             const res = await fetch(`${API}/chat/sessoes`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeaders },
                 body: JSON.stringify({
                     funcionario_usuario_id: Number(novoUsuarioId),
                     assunto: novoProtocoloRef,
@@ -434,3 +436,5 @@ export function AdminChat() {
         </div>
     );
 }
+
+

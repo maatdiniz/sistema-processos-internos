@@ -46,6 +46,7 @@ export async function abrirBanco(): Promise<Database> {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL UNIQUE,
             descricao TEXT,
+            template TEXT,
             ativo INTEGER NOT NULL DEFAULT 1,
             created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
         );

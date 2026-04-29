@@ -56,6 +56,7 @@ app.get('/chat/sessoes', authMiddleware, ChatController.listarSessoes);
 app.get('/chat/historico', authMiddleware, ChatController.historicoContinuo);
 app.get('/chat/sessoes/:id/mensagens', authMiddleware, ChatController.listarMensagens);
 app.post('/chat/sessoes/:id/mensagens', authMiddleware, ChatController.enviarMensagem);
+app.patch('/chat/sessoes/:id/aceitar', authMiddleware, ChatController.aceitar);
 app.patch('/chat/sessoes/:id/encerrar', authMiddleware, ChatController.encerrar);
 
 const PORT = 3000;

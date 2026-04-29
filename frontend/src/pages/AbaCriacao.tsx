@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-interface TipoDemanda { id: number; nome: string; descricao: string | null; }
+interface TipoDemanda { id: number; nome: string; descricao: string | null; template: string | null; }
 interface Departamento { id: number; nome: string; }
 interface Prioridade { id: number; nome: string; descricao: string; ordem: number; cor: string; }
 interface Funcionario { id: number; nome: string; matricula: string; }
@@ -34,10 +34,28 @@ export function AbaCriacao() {
             setTiposDemanda(tipos);
             setDepartamentos(deptos);
             setPrioridades(prios);
-            if (tipos.length > 0) setTipoDemandaId(tipos[0].id);
+            if (tipos.length > 0) {
+                setTipoDemandaId(tipos[0].id);
+                setDescricao(prev => prev || tipos[0].template || '');
+            }
             if (deptos.length > 0) setDeptoDestinoId(deptos[0].id);
         }).catch(err => console.error('Erro ao carregar dados:', err));
     }, []);
+
+    const handleTipoDemandaChange = (novoId: number) => {
+        const tipoAntigo = tiposDemanda.find(t => t.id === tipoDemandaId);
+        const novoTipo = tiposDemanda.find(t => t.id === novoId);
+        
+        // Atualizar o template apenas se a descrição estiver vazia ou for igual ao template do tipo antigo
+        setDescricao(prevDesc => {
+            if (!prevDesc || (tipoAntigo?.template && prevDesc.trim() === tipoAntigo.template.trim())) {
+                return novoTipo?.template || '';
+            }
+            return prevDesc;
+        });
+        
+        setTipoDemandaId(novoId);
+    };
 
     // Carregar funcionários quando mudar o departamento destino
     useEffect(() => {
@@ -65,7 +83,7 @@ export function AbaCriacao() {
         setEtapaAtual(1);
         setAssunto('');
         setTipoDemandaId(tiposDemanda[0]?.id || 0);
-        setDescricao('');
+        setDescricao(tiposDemanda[0]?.template || '');
         setDeptoDestinoId(departamentos[0]?.id || 0);
         setFuncionarioId(null);
         setPrioridadeId(0);
@@ -173,7 +191,7 @@ export function AbaCriacao() {
                             <div className="col-12 col-md-5">
                                 <label className="form-label">Tipo de Demanda</label>
                                 <select className="form-select form-select-lg" style={{ fontSize: 14 }}
-                                    value={tipoDemandaId} onChange={e => setTipoDemandaId(Number(e.target.value))}>
+                                    value={tipoDemandaId} onChange={e => handleTipoDemandaChange(Number(e.target.value))}>
                                     {tiposDemanda.map(t => (
                                         <option key={t.id} value={t.id}>{t.nome}</option>
                                     ))}

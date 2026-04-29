@@ -5,7 +5,8 @@ import { z } from 'zod';
 
 const tipoDemandaSchema = z.object({
     nome: z.string().min(3, 'O nome deve ter no mínimo 3 caracteres.').max(150),
-    descricao: z.string().optional().or(z.literal(''))
+    descricao: z.string().optional().or(z.literal('')),
+    template: z.string().optional().or(z.literal(''))
 });
 
 export const TipoDemandaController = {
@@ -43,8 +44,8 @@ export const TipoDemandaController = {
             }
 
             const resultado = await db.run(
-                'INSERT INTO tipos_demanda (nome, descricao) VALUES (?, ?)',
-                [dados.nome, dados.descricao || null]
+                'INSERT INTO tipos_demanda (nome, descricao, template) VALUES (?, ?, ?)',
+                [dados.nome, dados.descricao || null, dados.template || null]
             );
             return res.status(201).json({
                 mensagem: 'Tipo de demanda criado com sucesso!',
@@ -75,7 +76,7 @@ export const TipoDemandaController = {
                 return res.status(409).json({ erro: 'Já existe outro tipo de demanda com este nome.' });
             }
 
-            await db.run('UPDATE tipos_demanda SET nome = ?, descricao = ? WHERE id = ?', [dados.nome, dados.descricao || null, id]);
+            await db.run('UPDATE tipos_demanda SET nome = ?, descricao = ?, template = ? WHERE id = ?', [dados.nome, dados.descricao || null, dados.template || null, id]);
             return res.json({ mensagem: 'Tipo de demanda atualizado com sucesso!' });
         } catch (erro) {
             if (erro instanceof z.ZodError) {

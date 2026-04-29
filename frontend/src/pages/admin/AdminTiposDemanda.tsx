@@ -1,5 +1,6 @@
 // Arquivo: frontend/src/pages/admin/AdminTiposDemanda.tsx
 import { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const API = 'http://localhost:3000/admin/tipos-demanda';
 
@@ -7,21 +8,29 @@ interface TipoDemanda {
     id: number;
     nome: string;
     descricao: string | null;
+    template: string | null;
     ativo: number;
 }
 
 export function AdminTiposDemanda() {
+    const { token } = useAuth();
     const [lista, setLista] = useState<TipoDemanda[]>([]);
     const [carregando, setCarregando] = useState(true);
     const [formAberto, setFormAberto] = useState(false);
     const [editandoId, setEditandoId] = useState<number | null>(null);
     const [nome, setNome] = useState('');
     const [descricao, setDescricao] = useState('');
+    const [template, setTemplate] = useState('');
     const [erro, setErro] = useState('');
+
+    const getAuthHeaders = () => ({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    });
 
     const carregar = async () => {
         try {
-            const res = await fetch(API);
+            const res = await fetch(API, { headers: getAuthHeaders() });
             if (res.ok) setLista(await res.json());
         } catch { console.error('Erro ao carregar tipos de demanda'); }
         finally { setCarregando(false); }
@@ -29,11 +38,12 @@ export function AdminTiposDemanda() {
 
     useEffect(() => { carregar(); }, []);
 
-    const resetForm = () => { setNome(''); setDescricao(''); setEditandoId(null); setFormAberto(false); setErro(''); };
+    const resetForm = () => { setNome(''); setDescricao(''); setTemplate(''); setEditandoId(null); setFormAberto(false); setErro(''); };
 
     const abrirEdicao = (tipo: TipoDemanda) => {
         setNome(tipo.nome);
         setDescricao(tipo.descricao || '');
+        setTemplate(tipo.template || '');
         setEditandoId(tipo.id);
         setFormAberto(true);
         setErro('');
@@ -45,8 +55,8 @@ export function AdminTiposDemanda() {
             const url = editandoId ? `${API}/${editandoId}` : API;
             const method = editandoId ? 'PUT' : 'POST';
             const res = await fetch(url, {
-                method, headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, descricao })
+                method, headers: getAuthHeaders(),
+                body: JSON.stringify({ nome, descricao, template })
             });
             const data = await res.json();
             if (!res.ok) { setErro(data.erro || data.detalhes?.join(', ') || 'Erro ao salvar.'); return; }
@@ -57,7 +67,7 @@ export function AdminTiposDemanda() {
 
     const alternarAtivo = async (id: number) => {
         try {
-            await fetch(`${API}/${id}/toggle`, { method: 'PATCH' });
+            await fetch(`${API}/${id}/toggle`, { method: 'PATCH', headers: getAuthHeaders() });
             carregar();
         } catch { console.error('Erro ao alternar status'); }
     };
@@ -80,15 +90,18 @@ export function AdminTiposDemanda() {
                             {editandoId ? 'Editar Tipo de Demanda' : 'Novo Tipo de Demanda'}
                         </h6>
                         <div className="row g-2 mb-2">
-                            <div className="col-md-5">
-                                <input type="text" className="form-control" placeholder="Nome do tipo" value={nome} onChange={e => setNome(e.target.value)} />
+                            <div className="col-md-4">
+                                <input type="text" className="form-control form-control-sm" placeholder="Nome do tipo" value={nome} onChange={e => setNome(e.target.value)} />
                             </div>
-                            <div className="col-md-5">
-                                <input type="text" className="form-control" placeholder="Descrição (opcional)" value={descricao} onChange={e => setDescricao(e.target.value)} />
+                            <div className="col-md-6">
+                                <input type="text" className="form-control form-control-sm" placeholder="Descrição (opcional)" value={descricao} onChange={e => setDescricao(e.target.value)} />
                             </div>
                             <div className="col-md-2 d-flex gap-1">
                                 <button className="btn btn-primary btn-sm flex-grow-1" onClick={salvar}>Salvar</button>
                                 <button className="btn btn-outline-secondary btn-sm" onClick={resetForm}>✕</button>
+                            </div>
+                            <div className="col-12 mt-2">
+                                <textarea className="form-control form-control-sm" rows={4} placeholder="Template/Modelo de preenchimento na criação da demanda (opcional). Ex:&#10;Nome:&#10;Matrícula:" value={template} onChange={e => setTemplate(e.target.value)}></textarea>
                             </div>
                         </div>
                         {erro && <div className="text-danger" style={{ fontSize: 12 }}>{erro}</div>}
@@ -112,7 +125,10 @@ export function AdminTiposDemanda() {
                             <tr key={t.id} style={{ opacity: t.ativo ? 1 : 0.5 }}>
                                 <td style={{ fontWeight: 600, color: 'var(--text-muted)' }}>{t.id}</td>
                                 <td style={{ fontWeight: 500 }}>{t.nome}</td>
-                                <td style={{ color: 'var(--text-muted)', fontSize: 13 }}>{t.descricao || '—'}</td>
+                                <td style={{ color: 'var(--text-muted)', fontSize: 13 }}>
+                                    {t.descricao || '—'}
+                                    {t.template && <div style={{ fontSize: 11, marginTop: 4, background: 'rgba(0,0,0,0.03)', padding: 4, borderRadius: 4, whiteSpace: 'pre-wrap' }}><strong>Template:</strong><br/>{t.template}</div>}
+                                </td>
                                 <td>
                                     <span className={`status-badge ${t.ativo ? 'status-resolvido' : 'status-fechado'}`}>
                                         {t.ativo ? 'Ativo' : 'Inativo'}

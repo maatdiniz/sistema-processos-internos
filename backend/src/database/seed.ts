@@ -89,13 +89,13 @@ export async function executarSeed() {
             { nome: 'Criação de Exames', descricao: 'Solicitação para criação de exames e provas no sistema.' },
             { nome: 'Inserção de Alunos no Teams', descricao: 'Inserção de alunos em turmas e canais do Microsoft Teams.' },
             { nome: 'Ajuste Financeiro', descricao: 'Solicitação de ajuste em valores, boletos ou situação financeira de alunos.' },
-            { nome: 'Abertura de SAC', descricao: 'Registro de atendimento ao aluno via SAC.' }
+            { nome: 'Abertura de SAC', descricao: 'Registro de atendimento ao aluno via SAC.', template: 'Nome do aluno:\nMotivo do contato:\nDetalhes da solicita��o:' }
         ];
 
         for (const t of tiposDemanda) {
             await db.run(
-                'INSERT INTO tipos_demanda (nome, descricao) VALUES (?, ?)',
-                [t.nome, t.descricao]
+                'INSERT INTO tipos_demanda (nome, descricao, template) VALUES (?, ?, ?)',
+                [t.nome, t.descricao, t.template || '']
             );
         }
         console.log(`   ✓ ${tiposDemanda.length} tipos de demanda inseridos`);
@@ -113,3 +113,4 @@ export async function executarSeed() {
 
     console.log('🌱 Seed concluído!');
 }
+
